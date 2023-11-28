@@ -1,0 +1,4 @@
+// The module babel/core
+{
+    "presets": ["@babel/preset-env"]
+}
