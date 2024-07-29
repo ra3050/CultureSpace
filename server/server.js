@@ -13,8 +13,7 @@ import { nextTick } from "process";
 import { makeIdx } from "./util/controll";
 import moment from "moment";
 
-
-const PORT = 8428;  
+const PORT = 8080;  
 const __dirname = path.resolve();       //commonjs를 사용하면 기본적으로 __dirname이 포함되어 있지만 ESM에서는 기본적으로 포함되어있지 않다.
 const BUILDDIR = "../culture_space/build/";
 const KEEPENC = 'ab4c34dd21c8ultu3r9e';
@@ -23,7 +22,7 @@ const app = express();
 const logger = morgan('dev');
 
 app.use(express.json());            // 유저가 보낸 array/object 데이터를 출력하기 위해 사용
-app.use(cors({ credentials: true, origin: "http://localhost:8428"})); // react와 통신을 원활하게 하기위한 미들웨어, 외부클라이언트에서 접근시 에러가 발생하는데 이를 해결하려면 origin을 사용해줘야한다
+app.use(cors({ credentials: true, origin: "http://localhost:8080"})); // react와 통신을 원활하게 하기위한 미들웨어, 외부클라이언트에서 접근시 에러가 발생하는데 이를 해결하려면 origin을 사용해줘야한다
 app.use(logger);                    //서버 접속상태 실시간 확인 라이브러리  
 app.use(cookieParser(KEEPENC));     //암호화된 쿠키를 사용하기 위해 임의의 문자 사용                                   
 app.use(express.static(path.join(__dirname, "../culture_space/build/")));     //서버에 접속하는 사람들에게 입력한 path추소에서 html파일을 전송함  
@@ -34,9 +33,9 @@ app.get('*', function (req, res) {
     console.log('Welcome to myday');
 });
 
-app.use('/accessCheck/', checkToken)
+app.use('/api/pos/accessCheck/', checkToken)
 
-app.post('/signin', (req, res) => {
+app.post('/api/pos/signin', (req, res) => {
     const { id, password } = req.body;
     const sql = `SELECT * FROM tbl_users WHERE user_id='${id}'`
 
@@ -99,7 +98,7 @@ app.post('/signin', (req, res) => {
     
 })
 
-app.post('/logout', (req, res) => {
+app.post('/api/pos/logout', (req, res) => {
     res.clearCookie('accessToken')
     res.clearCookie('refreshToken')
     res.clearCookie('accessLevelToken');
@@ -107,9 +106,9 @@ app.post('/logout', (req, res) => {
     return res.send({result: true})
 })
 
-app.post('/accessLevelCheck', accessLevelCheck)
+app.post('/api/pos/accessLevelCheck', accessLevelCheck)
 
-app.post('/accessCheck/totalSales', (req, res) => {
+app.post('/api/pos/accessCheck/totalSales', (req, res) => {
     /** 
      * req.body를 통해 상태바에 필요한 정보를 요청하는지, 계산을 위한 데이터를 요청하는지 확인합니다
      * { sidebar: true } or null
@@ -256,7 +255,7 @@ app.post('/accessCheck/totalSales', (req, res) => {
 })
 
 // 브랜드, 기기, 프레임, 결제, 유저 등의 구분자 정보를 가져옵니다
-app.post('/accessCheck/codeList', (req, res) => {
+app.post('/api/pos/accessCheck/codeList', (req, res) => {
     const sql = `SELECT * FROM tbl_codes`
     auth_Connect(sql, (success, state, rows, error) => {
         if (!success || error) {
@@ -273,7 +272,7 @@ app.post('/accessCheck/codeList', (req, res) => {
     })
 })
 
-app.post('/accessCheck/frameToDeginer', (req, res) => {
+app.post('/api/pos/accessCheck/frameToDeginer', (req, res) => {
     const sql = `SELECT * FROM tbl_desingers`
     auth_Connect(sql , (success, state, rows, error) => {
         if (!success || error) {
@@ -318,9 +317,44 @@ app.post('/accessCheck/frameToDeginer', (req, res) => {
     })
 })
 
+app.post('/api/pos/accessCheck/brandList', (req, res) => {
+    const sql = `SELECT * FROM tbl_brands`
+    auth_Connect(sql, (success, state, rows, error) => {
+        if (!success || error) {
+            console.log('브랜드 리스트 호출 실패', error)
+            return res.send({errMessage: '서버에러가 발생하였습니다. 관리자에게 문의해주세요', result: false})
+        }
+
+        if (!rows.length) {
+            console.log('브랜드 리스트 없음')
+            return res.send({errMessage: 'code정보 호출중 에러 발생', result: false})
+        }
+
+        console.log('find brand_tbl:', rows)
+        return res.send({info: rows, result: true})
+    })
+})
+
+app.post('/api/pos/accessCheck/goodsList', (req, res) => {
+    const sql = `SELECT * FROM tbl_goods`
+    auth_Connect(sql, (success, state, rows, error) => {
+        if (!success || error) {
+            console.log('굿즈 데이터 호출 에러', error)
+            return res.send({errMessage: '서버에러가 발생하였습니다. 관리자에게 문의해주세요', result: false})
+        }
+
+        if (!rows.length) {
+            console.log('굿즈정보없음')
+            return res.send({errMessage: 'code정보 호출중 에러 발생', result: false})
+        }
+
+        return res.send({info: rows, result: true})
+    })
+})
+
 // 점주-주문 
-app.post('/accessCheck/orderToOwner', (req, res) => {
-    const { order_type, order_cnt, order_shop_id, order_shop_name, order_price } = req.body;
+app.post('/api/pos/accessCheck/orderToOwner', (req, res) => {
+    const { good_id, good_cnt, shop_id, shop_name, order_price } = req.body;
     const id = verifyToken(req.signedCookies.accessToken)
     console.log(id.user_id)
 
@@ -338,7 +372,7 @@ app.post('/accessCheck/orderToOwner', (req, res) => {
         }
 
         const master_id = rows[0].ref_id;
-        const orderSql = `INSERT INTO tbl_orders (owner_id, master_id, order_type, order_cnt, order_price, order_shop_id, order_shop_name) VALUES ('${id.user_id}', '${master_id}', '${order_type}', ${order_cnt}, ${order_price}, '${order_shop_id}', '${order_shop_name}');`
+        const orderSql = `INSERT INTO tbl_orders (good_id ,owner_id, master_id, good_cnt, order_price, shop_id, shop_name) VALUES ('${good_id}', '${id.user_id}', '${master_id}', ${good_cnt}, ${order_price}, '${shop_id}', '${shop_name}');`
         auth_Connect(orderSql, (success, state, rows, error) => {
             if (!success || error) {
                 console.log('주문시도중 에러가 발생했습니다', error)
@@ -351,15 +385,15 @@ app.post('/accessCheck/orderToOwner', (req, res) => {
 })
 
 // 주문정보 가져오기
-app.post('/accessCheck/orderToList', (req, res) => {
+app.post('/api/pos/accessCheck/orderToList', (req, res) => {
     const id = verifyToken(req.signedCookies.accessToken)
     const accessLevel = verifyToken(req.signedCookies.accessLevelToken)
     
     console.log(id.user_id)
     let sql = `SELECT * FROM tbl_orders where owner_id='${id.user_id}'`
-    if (accessLevel.user_type === 'USER_MASTER') {
+    if (accessLevel?.user_type === 'USER_MASTER') {
         sql  = `SELECT * FROM tbl_orders WHERE master_id='${accessLevel.user_id}'`
-    } else if (accessLevel.user_type === 'USER_ADMIN') {
+    } else if (accessLevel?.user_type === 'USER_ADMIN') {
         sql = `SELECT * FROM tbl_orders`
     }
     auth_Connect(sql, (success, state, rows, error) => {
@@ -378,7 +412,7 @@ app.post('/accessCheck/orderToList', (req, res) => {
 })
 
 //주문취소
-app.post('/accessCheck/orderCancel', (req, res) => {
+app.post('/api/pos/accessCheck/orderCancel', (req, res) => {
     const { order_id } = req.body
     const id = verifyToken(req.signedCookies.accessToken)
     console.log(id.user_id)
@@ -394,7 +428,7 @@ app.post('/accessCheck/orderCancel', (req, res) => {
 })
 
 // 마지막 정산 날짜를 반환합니다
-app.post('/accessCheck/premiumState', (req, res) => {
+app.post('/api/pos/accessCheck/premiumState', (req, res) => {
     const id = verifyToken(req.signedCookies.accessToken)
     console.log(id.user_id)
     const sql = `SELECT premium_month FROM tbl_users WHERE user_id='${id.user_id}'`
@@ -408,7 +442,7 @@ app.post('/accessCheck/premiumState', (req, res) => {
     })
 })
 
-app.post('/accessCheck/reIssuePassword', (req ,res) => {
+app.post('/api/pos/accessCheck/reIssuePassword', (req ,res) => {
     const { oldpassword, password } = req.body
     
     const id = verifyToken(req.signedCookies.accessToken)
@@ -448,7 +482,7 @@ app.post('/accessCheck/reIssuePassword', (req ,res) => {
 })
 
 // * 관리자 master, admin 전용 API
-app.post('/sidebarList', (req, res) => {
+app.post('/api/pos/sidebarList', (req, res) => {
     const accessLevel = verifyToken(req.signedCookies.accessLevelToken);
     const sql = `SELECT * FROM tbl_users`;
 
@@ -484,7 +518,7 @@ app.post('/sidebarList', (req, res) => {
 })
 
 // * 관리자 master, admin 전용 API
-app.post('/changeAccessToken', (req, res) => {
+app.post('/api/pos/changeAccessToken', (req, res) => {
     const { lower_user_id } = req.body 
     res.clearCookie(req.signedCookies.accessToken)
     const accessToken = issueAccess(lower_user_id)
@@ -501,7 +535,7 @@ app.post('/changeAccessToken', (req, res) => {
     }
 })
 
-app.use('/adminCheck/', (req, res, next) => {
+app.use('/api/pos/adminCheck/', (req, res, next) => {
     const accessLevel = verifyToken(req.signedCookies.accessLevelToken);
 
     if (accessLevel.user_type !== 'USER_ADMIN') {
@@ -513,7 +547,7 @@ app.use('/adminCheck/', (req, res, next) => {
 })
 
 //계정생성
-app.post('/adminCheck/createMaster', (req, res) => {
+app.post('/api/pos/adminCheck/createMaster', (req, res) => {
     const { user_id, user_pwd, user_name, user_tel, user_addr, user_email, user_info, user_type } = req.body;
     const national_code = 'KR';
     const ref_id = 'admin'
@@ -531,7 +565,7 @@ app.post('/adminCheck/createMaster', (req, res) => {
     })
 })
 
-app.post('/adminCheck/shopList', (req,res) => {
+app.post('/api/pos/adminCheck/shopList', (req,res) => {
     const { user_id } = req.body    
     const sql = `SELECT * FROM tbl_shops WHERE owner_id='${user_id}'`
 
@@ -575,7 +609,7 @@ app.post('/adminCheck/shopList', (req,res) => {
     })            
 })
 
-app.post('/adminCheck/saveShop', (req, res) => {
+app.post('/api/pos/adminCheck/saveShop', (req, res) => {
     const { shoplist, eqlist } = req.body;
     const brand_code = shoplist?.brand_code?.replace('BRAND_', '');
     const national_code = 'KR';
@@ -626,7 +660,7 @@ app.post('/adminCheck/saveShop', (req, res) => {
     })
 })
 
-app.post('/adminCheck/makeID', (req, res) => {
+app.post('/api/pos/adminCheck/makeID', (req, res) => {
     const { tag } = req.body; 
     console.log(tag)
     const id = makeIdx(tag) 
@@ -634,7 +668,7 @@ app.post('/adminCheck/makeID', (req, res) => {
     return res.send({id: id, result: true})
 })
 
-app.post('/adminCheck/updateUserInfo', (req, res) => {
+app.post('/api/pos/adminCheck/updateUserInfo', (req, res) => {
     const { user_id, user_name, user_tel, user_addr, user_email, user_info, ref_id } = req.body;
     const updateSql = `UPDATE tbl_users SET user_name='${user_name}', user_tel='${user_tel}', user_addr='${user_addr}', user_email='${user_email}', user_info='${user_info}', ref_id='${ref_id}' WHERE user_id='${user_id}'`
 
@@ -648,7 +682,7 @@ app.post('/adminCheck/updateUserInfo', (req, res) => {
     })
 })
 
-app.post('/adminCheck/deleteUser', (req, res) => {
+app.post('/api/pos/adminCheck/deleteUser', (req, res) => {
     const { user_id , shoplist, eqlist } = req.body;
     const sql = `UPDATE tbl_users SET delete_yn = 'y', del_time = now() WHERE user_id = '${user_id}'`
     
@@ -696,7 +730,7 @@ app.post('/adminCheck/deleteUser', (req, res) => {
     })
 })
 
-app.post('/adminCheck/deleteShop', (req, res) => {
+app.post('/api/pos/adminCheck/deleteShop', (req, res) => {
     const { shoplist, eqlist } = req.body;
 
     const shopSql = `UPDATE tbl_shops SET delete_yn='y', del_time = now() WHERE shop_id='${shoplist.shop_id}'`
@@ -730,7 +764,7 @@ app.post('/adminCheck/deleteShop', (req, res) => {
     })
 })
 
-app.post('/adminCheck/deleteEquipment', (req, res) => {
+app.post('/api/pos/adminCheck/deleteEquipment', (req, res) => {
     const { eqlist } = req.body;
 
     let equipment = '';
@@ -753,7 +787,7 @@ app.post('/adminCheck/deleteEquipment', (req, res) => {
     })
 })
 
-app.post('/adminCheck/successOrder', (req, res) => {
+app.post('/api/pos/adminCheck/successOrder', (req, res) => {
     const { order_id } = req.body;
     const sql = `UPDATE tbl_orders SET state=1, state_complete_time=now() WHERE order_id=${order_id}`
     auth_Connect(sql, (success, state, rows, error) => {
@@ -766,7 +800,7 @@ app.post('/adminCheck/successOrder', (req, res) => {
     })
 })
 
-app.post('/adminCheck/deleteOrder', (req, res) => {
+app.post('/api/pos/adminCheck/deleteOrder', (req, res) => {
     const { order_id } = req.body;
     const sql = `UPDATE tbl_orders SET delete_yn='y' WHERE order_id=${order_id}`
     auth_Connect(sql, (success, state, rows, error) => {
@@ -779,10 +813,6 @@ app.post('/adminCheck/deleteOrder', (req, res) => {
     })
 })
 
-// app.post('/totalSalse', (req ,res) => {
-    
-// })
-
 // // 아래부터 SSL 인증과 서버 오픈을 위한 명령어
 // const options = {
 //     key: fs.readFileSync(path.join(__dirname, process.env.SSL_KEY_PATH)),
@@ -791,11 +821,11 @@ app.post('/adminCheck/deleteOrder', (req, res) => {
 // }
 // const server = https.createServer(options, app)             //https 서버생성
 // const httpServer = http.createServer((req, res) => {
-//     res.writeHead(301, { 'Location': 'https://www.open-myday.xyz' });
+//     res.writeHead(301, { 'Location': 'https://www.pzone.info' });
 //     res.end();
 // })                      //http 서버생성
 
-// httpServer.listen(4000, () => {
+// httpServer.listen(8080, () => {
 //     console.log('컬처스페이스 POS페이지( - http)에 오신것을 환영합니다')
 // })
 
