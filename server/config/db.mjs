@@ -1,4 +1,4 @@
-import "dotenv/config"; 
+import "dotenv/config";
 
 export const database = {
     // host: 'host',
@@ -8,7 +8,7 @@ export const database = {
 }
 
 export const AuthDatabase = {
-    host : '172.30.1.99',                  // DB 접속 IP로 수정
+    host: '172.30.1.99',                  // DB 접속 IP로 수정
     // host : '101.101.211.229',
     // host : '127.0.0.1',
     user: process.env.DB_USER,              // .env파일, db유저네임

@@ -43,7 +43,7 @@ export const issueAccess = (user_id) => {
     /**
      * 엑세스토큰만 발급합니다.
      */
-    let accessToken = jwt.sign({ user_id : user_id },
+    let accessToken = jwt.sign({ user_id: user_id },
         process.env.JWT_SECRET,
         {
             expiresIn: '1h',
@@ -55,7 +55,7 @@ export const issueAccess = (user_id) => {
 
 //accessLevel토큰 발급
 export const issueAccessLevel = (user_type, user_id) => {
-    let accessToken = jwt.sign({ user_type : user_type, user_id : user_id },
+    let accessToken = jwt.sign({ user_type: user_type, user_id: user_id },
         process.env.JWT_SECRET,
         {
             expiresIn: '1h',
@@ -89,7 +89,7 @@ export const checkToken = (req, res, next) => {
             res.clearCookie('accessLevelToken');
             res.status(401).send(false);
         }
-    } else { 
+    } else {
         /**
          * accessToken, refreshToken이 모두 유효한 경우
          * next() 함수로 다음으로 넘겨줌
@@ -104,24 +104,24 @@ export const accessLevelCheck = (req, res) => {
     console.log(accessLevelToken)
 
     if (!accessLevelToken) {
-        return res.send({ accessLevel : false })
+        return res.send({ accessLevel: false })
     }
 
     return res.send(accessLevelToken)
 }
 // 비밀번호 검사
 export const comparePassword = (db_PW, input_PW) => {
-    
+
     const match = bcrypt.compareSync(input_PW, db_PW)
-    
+
     if (match) {
         return true
     }
     return false
 }
 
-export const issuePassword = async(password, callback) => {
+export const issuePassword = async (password, callback) => {
     const hash = await bcrypt.hash(password, 10);
-    
+
     callback(hash)
 }
