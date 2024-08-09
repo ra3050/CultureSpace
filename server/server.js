@@ -15,7 +15,7 @@ import moment from "moment";
 
 const PORT = 8080;
 const __dirname = path.resolve();       //commonjs를 사용하면 기본적으로 __dirname이 포함되어 있지만 ESM에서는 기본적으로 포함되어있지 않다.
-const BUILDDIR = "../culture_space/build/";
+const BUILDDIR = "../front/build/"      //"../culture_space/build/";
 const KEEPENC = 'ab4c34dd21c8ultu3r9e';
 
 const app = express();
@@ -25,7 +25,7 @@ app.use(express.json());            // 유저가 보낸 array/object 데이터�
 app.use(cors({ credentials: true, origin: "http://localhost:8080" })); // react와 통신을 원활하게 하기위한 미들웨어, 외부클라이언트에서 접근시 에러가 발생하는데 이를 해결하려면 origin을 사용해줘야한다
 app.use(logger);                    //서버 접속상태 실시간 확인 라이브러리  
 app.use(cookieParser(KEEPENC));     //암호화된 쿠키를 사용하기 위해 임의의 문자 사용                                   
-app.use(express.static(path.join(__dirname, "../culture_space/build/")));     //서버에 접속하는 사람들에게 입력한 path추소에서 html파일을 전송함  
+app.use(express.static(path.join(__dirname, "../front/build/")));     //서버에 접속하는 사람들에게 입력한 path추소에서 html파일을 전송함  
 
 // 모든 라우팅 권한을 react로 옮겨줌
 app.get('*', function (req, res) {
