@@ -33,6 +33,6 @@
 <br>
 
 <div><h1>실행화면</h1></div>
-<img src="https://github.com/user-attachments/assets/f599c382-6241-45af-a429-3120080a6117"/>
-<img src="https://github.com/user-attachments/assets/fd0460cb-e84b-431f-9b23-83f57bd3f2f6"/>
-<img src="https://github.com/user-attachments/assets/be93d429-cd67-4050-a99d-fdc03b1f3c64"/>
+<img src="https://github.com/user-attachments/assets/ce4d3345-fabf-4968-b034-e8ef0d2b7c52"/>
+<img src="https://github.com/user-attachments/assets/90ba68b8-c3cd-4ad2-8e9a-6dd35480eab7"/>
+<img src="https://github.com/user-attachments/assets/1e1f0ba4-b51f-42e2-bd31-391e7c984d38"/>
