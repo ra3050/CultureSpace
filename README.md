@@ -18,7 +18,7 @@
 
 <div><h1>실행방법</h1></div>
 <div>
-  <p> **위 파일은 서버 코드입니다**<br> **서브모듈 파일은 프론트 코드입니다**<br>**제공되는 데이터는 실제 데이터가 아닌 테스트용 데이터입니다</p>
+  <p> **위 파일은 서버 코드입니다**<br> **서브모듈 파일은 프론트 코드입니다**<br>**제공되는 데이터는 실제 데이터가 아닌 테스트용 데이터입니다**</p>
   <p> 테스트용 계정정보 <br>admin: admin PW:ww97939943<br>subadmin: master0001 PW: qweqweqweqweqwe<br>user: owner00001 PW:qweqweqweqweqwe</p>
     
   <p>1. ./server/server.js에 18번 28번 라인에 경로를 프론트 파일의 /build 디렉토리 위치로 변경</p>
