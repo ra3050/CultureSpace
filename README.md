@@ -16,19 +16,23 @@
 <br>
 <br>
 
-#
 <div><h1>실행방법</h1></div>
 <div>
-  <p></p>
-  <p></p>
-  <p></p>
-  <p></p>
+  <p> **위 파일은 서버 코드입니다**<br> **서브모듈 파일은 프론트 코드입니다**<br>**제공되는 데이터는 실제 데이터가 아닌 테스트용 데이터입니다</p>
+  <p> 테스트용 계정정보 <br>admin: admin PW:ww97939943<br>subadmin: master0001 PW: qweqweqweqweqwe<br>user: owner00001 PW:qweqweqweqweqwe</p>
+    
+  <p>1. ./server/server.js에 18번 28번 라인에 경로를 프론트 파일의 /build 디렉토리 위치로 변경</p>
+  <p>2. culture_pos_dump.sql파일 mariaDB에 업로드</p>
+  <p>3. ./server/config/db.js에 host ip 변경</p>
+  <p>4. 프론트 ./src/controller/Axios.config.js baseURL을 사용할 수조 값으로 변경</p>
+  <p>5. 프론트 파일 npm run build</p>
+  <p>6. 서버파일 npm run dev:server </p>
   <p></p>
 </div>
 <br>
 <br>
 
-#
+<div><h1>실행화면</h1></div>
 <img src="https://github.com/user-attachments/assets/f599c382-6241-45af-a429-3120080a6117"/>
 <img src="https://github.com/user-attachments/assets/fd0460cb-e84b-431f-9b23-83f57bd3f2f6"/>
 <img src="https://github.com/user-attachments/assets/be93d429-cd67-4050-a99d-fdc03b1f3c64"/>
